@@ -28,9 +28,6 @@ describe('registry', () => {
       expect(uut.encodeById).to.be.instanceOf(Function);
       expect(uut.decode).to.exist;
       expect(uut.decode).to.be.instanceOf(Function);
-      expect(uut.decodeMessage).to.exist;
-      expect(uut.decodeMessage).to.be.instanceOf(Function);
-      expect(uut.decode).to.equal(uut.decodeMessage);
     });
 
     it('selects https transport', () => {
@@ -109,11 +106,11 @@ describe('registry', () => {
 
       const uut = registry('http://test.com');
 
-      return uut.decode(buffer).then((msg) => {
+      return uut.decode(buffer, schema).then((msg) => {
         expect(msg).to.eql(message);
 
         // no mocked http call for this call, must came from the cache
-        return uut.decode(buffer).then((msg2) => {
+        return uut.decode(buffer, schema).then((msg2) => {
           expect(msg2).to.eql(message);
         });
       });

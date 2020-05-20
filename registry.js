@@ -90,14 +90,12 @@ const getSchema = (id, parseOptions) => {
     });
   };
 
-  const decode = (msg, parseOptions) => {
+  const decode = (msg, readerSchema, parseOptions) => {
     if (msg.readUInt8(0) !== 0) {
       return Promise.reject(new Error(`Message doesn't contain schema identifier byte.`));
     }
     const id = msg.readUInt32BE(1);
     const buffer = msg.slice(5);
-
-    const schema = registry.cache.getById(id);
 
     let schemaPromise = registry.cache.getById(id);
     if (!schemaPromise) {
@@ -105,14 +103,21 @@ const getSchema = (id, parseOptions) => {
       registry.cache.setById(schemaPromise);
     }
 
-    return schemaPromise.then((schema) => {
-      const parsedSchema = avsc.parse(schema, parseOptions);
-      if (schemaPromise != Promise.resolve(parsedSchema)) {
-        registry.cache.setById(id, Promise.resolve(parsedSchema));
-        registry.cache.setBySchema(JSON.stringify(schema), Promise.resolve(id));
+    return schemaPromise.then((writerSchema) => {
+      const parsedWriterSchema = avsc.parse(writerSchema, parseOptions);
+      if (schemaPromise != Promise.resolve(parsedWriterSchema)) {
+        registry.cache.setById(id, Promise.resolve(parsedWriterSchema));
+        registry.cache.setBySchema(JSON.stringify(writerSchema), Promise.resolve(id));
       }
 
-      return parsedSchema.fromBuffer(buffer);
+      const parsedReaderSchema = avsc.parse(readerSchema, parseOptions);
+
+      if (parsedReaderSchema.equals(parsedWriterSchema)) {
+          return parsedReaderSchema.fromBuffer(buffer)
+      }
+
+      const resolver = parsedReaderSchema.createResolver(parsedWriterSchema);
+      return parsedReaderSchema.fromBuffer(buffer, resolver);
     });
   };
 
@@ -139,7 +144,6 @@ const getSchema = (id, parseOptions) => {
 
   return {
     decode,
-    decodeMessage: decode,
     encodeById,
     encode,
     encodeMessageByTopicName,
