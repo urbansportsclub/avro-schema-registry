@@ -116,19 +116,10 @@ const getSchema = (id, parseOptions) => {
     });
   };
 
-  const encodeKey = (topic, schema, msg, parseOptions = null) => {
+  const encode = (topic, schema, msg, parseOptions = null) => {
     try {
       const parsedSchema = avsc.parse(schema, parseOptions);
-      return getId(`${topic}-key`, schema, parsedSchema).then((id) => encodeFunction(msg, id, parsedSchema));
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  };
-
-  const encodeMessage = (topic, schema, msg, parseOptions = null) => {
-    try {
-      const parsedSchema = avsc.parse(schema, parseOptions);
-      return getId(`${topic}-value`, schema, parsedSchema).then((id) => encodeFunction(msg, id, parsedSchema));
+      return getId(`${topic}`, schema, parsedSchema).then((id) => encodeFunction(msg, id, parsedSchema));
     } catch (e) {
       return Promise.reject(e);
     }
@@ -150,8 +141,7 @@ const getSchema = (id, parseOptions) => {
     decode,
     decodeMessage: decode,
     encodeById,
-    encodeKey,
-    encodeMessage,
+    encode,
     encodeMessageByTopicName,
     getSchemaByTopicName,
   };

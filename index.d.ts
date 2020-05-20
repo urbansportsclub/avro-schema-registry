@@ -9,8 +9,7 @@ declare namespace schema {
         decode: DecodeMessage;
         decodeMessage: DecodeMessage;
         encodeById: EncodeById;
-        encodeKey: EncodeBySchema;
-        encodeMessage: EncodeBySchema;
+        encode: EncodeBySchema;
         encodeMessageByTopicName: EncodeByTopicName
         getSchemaByTopicName: GetSchemaByTopicName
     }

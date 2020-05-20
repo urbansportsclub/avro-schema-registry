@@ -22,10 +22,8 @@ describe('registry', () => {
     it('returns an object with encode and decode methods', () => {
       const uut = registry('http://test.com');
       expect(uut).to.be.instanceOf(Object);
-      expect(uut.encodeKey).to.exist;
-      expect(uut.encodeKey).to.be.instanceOf(Function);
-      expect(uut.encodeMessage).to.exist;
-      expect(uut.encodeMessage).to.be.instanceOf(Function);
+      expect(uut.encode).to.exist;
+      expect(uut.encode).to.be.instanceOf(Function);
       expect(uut.encodeById).to.exist;
       expect(uut.encodeById).to.be.instanceOf(Function);
       expect(uut.decode).to.exist;
@@ -40,10 +38,10 @@ describe('registry', () => {
 
       const schema = {type: 'string'};
       nock('https://test.com')
-        .post('/subjects/test-value/versions')
+        .post('/subjects/test/versions')
         .reply(200, {id: 1});
 
-      return uut.encodeMessage('test', schema, 'some string');
+      return uut.encode('test', schema, 'some string');
     });
 
     it('respects basic auth credentials from the url', () => {
@@ -51,11 +49,11 @@ describe('registry', () => {
 
       const schema = {type: 'string'};
       nock('https://test.com')
-        .post('/subjects/test-value/versions')
+        .post('/subjects/test/versions')
         .basicAuth({ user: 'username', pass: 'password' })
         .reply(200, {id: 1});
 
-      return uut.encodeMessage('test', schema, 'some string');
+      return uut.encode('test', schema, 'some string');
     });
 
     it('respects basic auth credentials from the auth object', () => {
@@ -63,11 +61,11 @@ describe('registry', () => {
 
       const schema = {type: 'string'};
       nock('https://test.com')
-        .post('/subjects/test-value/versions')
+        .post('/subjects/test/versions')
         .basicAuth({ user: 'username', pass: 'password' })
         .reply(200, {id: 1});
 
-      return uut.encodeMessage('test', schema, 'some string');
+      return uut.encode('test', schema, 'some string');
     });
 
     it('handles connection error', () => {
@@ -75,7 +73,7 @@ describe('registry', () => {
 
       const schema = {type: 'string'};
 
-      const result = uut.encodeMessage('test', schema, 'some string');
+      const result = uut.encode('test', schema, 'some string');
       expect(result).to.eventually.be.rejectedWith('getaddrinfo ENOTFOUND not-good-url');
     });
   });
@@ -125,7 +123,7 @@ describe('registry', () => {
   describe('encodeKey', () => {
     it('rejects if the schema parse fails', () => {
       const uut = registry('http://test.com');
-      return uut.encodeKey('topic', {invalid: 'schema'}, message).catch((error) => {
+      return uut.encode('topic', {invalid: 'schema'}, message).catch((error) => {
         expect(error).to.exist
           .and.be.instanceof(Error)
           .and.have.property('message', 'unknown type: undefined');
@@ -134,12 +132,12 @@ describe('registry', () => {
 
     it('rejects if the schema registry call fails', () => {
       nock('http://test.com')
-        .post('/subjects/topic-key/versions')
+        .post('/subjects/topic/versions')
         .reply(500, {error_code: 1, message: 'failed request'});
 
       const uut = registry('http://test.com');
 
-      return uut.encodeKey('topic', schema, message).catch((error) => {
+      return uut.encode('topic', schema, message).catch((error) => {
         expect(error).to.exist
           .and.be.instanceof(Error)
           .and.have.property('message', 'Schema registry error: 1 - failed request');
@@ -148,16 +146,16 @@ describe('registry', () => {
 
     it('uses the registry for the first call to register schema and return id and cache for the second call for the same schema', () => {
       nock('http://test.com')
-        .post('/subjects/topic-key/versions')
+        .post('/subjects/topic/versions')
         .reply(200, {id: 1});
 
       const uut = registry('http://test.com');
 
-      return uut.encodeKey('topic', schema, message).then((msg) => {
+      return uut.encode('topic', schema, message).then((msg) => {
         expect(msg).to.eql(buffer);
 
         // no mocked http call for this call, must came from the cache
-        return uut.encodeKey('topic', schema, message).then((msg2) => {
+        return uut.encode('topic', schema, message).then((msg2) => {
           expect(msg2).to.eql(buffer);
         });
       });
@@ -167,7 +165,7 @@ describe('registry', () => {
   describe('encodeMessage', () => {
     it('rejects if the schema parse fails', () => {
       const uut = registry('http://test.com');
-      return uut.encodeMessage('topic', {invalid: 'schema'}, message).catch((error) => {
+      return uut.encode('topic', {invalid: 'schema'}, message).catch((error) => {
         expect(error).to.exist
           .and.be.instanceof(Error)
           .and.have.property('message', 'unknown type: undefined');
@@ -176,12 +174,12 @@ describe('registry', () => {
 
     it('rejects if the schema registry call fails', () => {
       nock('http://test.com')
-        .post('/subjects/topic-value/versions')
+        .post('/subjects/topic/versions')
         .reply(500, {error_code: 1, message: 'failed request'});
 
       const uut = registry('http://test.com');
 
-      return uut.encodeMessage('topic', schema, message).catch((error) => {
+      return uut.encode('topic', schema, message).catch((error) => {
         expect(error).to.exist
           .and.be.instanceof(Error)
           .and.have.property('message', 'Schema registry error: 1 - failed request');
@@ -190,16 +188,16 @@ describe('registry', () => {
 
     it('uses the registry for the first call to register schema and return id and cache for the second call for the same schema', () => {
       nock('http://test.com')
-        .post('/subjects/topic-value/versions')
+        .post('/subjects/topic/versions')
         .reply(200, {id: 1});
 
       const uut = registry('http://test.com');
 
-      return uut.encodeMessage('topic', schema, message).then((msg) => {
+      return uut.encode('topic', schema, message).then((msg) => {
         expect(msg).to.eql(buffer);
 
         // no mocked http call for this call, must came from the cache
-        return uut.encodeMessage('topic', schema, message).then((msg2) => {
+        return uut.encode('topic', schema, message).then((msg2) => {
           expect(msg2).to.eql(buffer);
         });
       });

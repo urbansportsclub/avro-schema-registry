@@ -10,7 +10,7 @@ const registry = require('avro-schema-registry')('https://host.com:8081');
 const schema = {type: 'string'};
 const message = 'test message';
 
-registry.encodeMessage('topic', schema, message)
+registry.encode('topic', schema, message)
   .then((msg) => {
     console.log(msg);   // <Buffer 00 00 00 00 01 18 74 65 73 74 20 6d 65 73 73 61 67 65>
 
