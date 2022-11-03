@@ -47,11 +47,3 @@ jobs:
 
       - name: Publish Repository
         run: npm publish --registry ${{ env.PACKAGES_REGISTRY_URL }}
-
-      - name: Adding to Git Comment
-        run: git add src/
-      
-      - name: Moving to Top
-        run: cd ../..
-
-      
