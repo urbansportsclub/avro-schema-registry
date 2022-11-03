@@ -17,7 +17,6 @@ jobs:
   deploy:
     name: Deploy To Verdaccio
     runs-on: [self-hosted, deploy]
-    needs: ci
     steps:
       - name: Checkout
         uses: actions/checkout@v3
